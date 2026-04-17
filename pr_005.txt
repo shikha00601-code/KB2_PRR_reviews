@@ -1,0 +1,35 @@
+PR #38: Add Redis caching for product catalog
+Author: Rahul Sharma
+Date: 2025-09-02
+Status: Merged
+Branch: feature/redis-cache
+
+Description:
+Add Redis cache layer for product catalog and inventory counts 
+to reduce database load.
+
+Review Comments:
+
+Priya Nair (Sep 3):
+"5-minute TTL for product catalog makes sense. But 30-second TTL 
+for inventory counts seems short. Redis will be hit constantly 
+as cache expires. Can we increase it to 2 minutes?"
+
+Rahul Sharma (Sep 3):
+"30 seconds is intentional. During flash sales, inventory changes 
+rapidly. If we cache for 2 minutes, a customer might see 'in stock' 
+for an item that sold out 90 seconds ago. They'd go through the 
+whole checkout flow only to get rejected at payment. Bad UX. 
+30 seconds is the sweet spot — reduces DB load by 95% while keeping 
+data fresh enough."
+
+Arjun Patel (Sep 4):
+"What happens if Redis goes down? Will the app crash or fall back 
+to the database?"
+
+Rahul Sharma (Sep 4):
+"Falls back to database. Added try-catch around all cache operations. 
+If Redis is unreachable, we log a warning and query the DB directly. 
+The app degrades gracefully — slower but functional."
+
+Final status: Approved by Priya, Arjun. Merged Sep 5.

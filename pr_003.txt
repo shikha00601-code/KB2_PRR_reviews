@@ -1,0 +1,35 @@
+PR #25: Add circuit breaker for external service calls
+Author: Rahul Sharma
+Date: 2025-09-18
+Status: Merged
+Branch: feature/circuit-breaker
+
+Description:
+Add Resilience4j circuit breaker around Stripe API calls and 
+inter-service REST calls to prevent cascading failures.
+
+Review Comments:
+
+Priya Nair (Sep 19):
+"The fallback for inventory check returns cached data. But what 
+if the cached data is stale and shows items in stock that are 
+actually sold out? The customer would place an order that we 
+can't fulfill."
+
+Rahul Sharma (Sep 19):
+"You're right. Changed the fallback to return an error message 
+instead of cached data for inventory checks. For product catalog 
+(read-only data that doesn't change often), cached fallback is fine. 
+But for inventory availability, we should fail fast rather than 
+give wrong information."
+
+Meera Iyer (Sep 20):
+"Can we add a test that simulates the circuit opening? I want to 
+make sure the fallback actually works in practice, not just in theory."
+
+Rahul Sharma (Sep 20):
+"Added. The test uses WireMock to simulate Stripe returning 500 
+errors. After 5 failures, the circuit opens and the fallback kicks in.
+Also added a test for the half-open state transition."
+
+Final status: Approved by Priya, Meera. Merged Sep 21.

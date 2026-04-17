@@ -1,0 +1,41 @@
+PR #18: Implement inventory reservation with pessimistic locking
+Author: Priya Nair
+Date: 2025-08-15
+Status: Merged
+Branch: feature/inventory-reservation
+
+Description:
+Add inventory reservation system that locks stock during order placement 
+to prevent overselling. Uses PostgreSQL SELECT FOR UPDATE.
+
+Review Comments:
+
+Rahul Sharma (Aug 16):
+"Why pessimistic locking over optimistic? Optimistic is generally 
+preferred for web applications because it doesn't hold database locks."
+
+Priya Nair (Aug 16):
+"I tested both. With optimistic locking, during our flash sale 
+simulation (2000 concurrent users on same product), the retry rate 
+was 40% — nearly half the requests had to retry because of version 
+conflicts. With pessimistic locking, requests queue up but succeed 
+on first attempt. Total throughput was actually better with pessimistic 
+because there's no retry overhead. The lock hold time is only 5-10ms 
+so it doesn't cause long waits."
+
+Rahul Sharma (Aug 16):
+"That's a solid analysis. Approved. Add a comment in the code 
+explaining this decision so future devs don't try to 'optimize' 
+it to optimistic locking without understanding the trade-off."
+
+Arjun Patel (Aug 17):
+"The ReservationCleanupScheduler runs every minute. What if it 
+runs while an order is still being processed? Could it accidentally 
+release a valid reservation?"
+
+Priya Nair (Aug 17):
+"The cleanup only releases reservations older than 15 minutes. 
+Normal order processing takes under 30 seconds. So there's a 
+14.5 minute buffer. Added a comment clarifying this."
+
+Final status: Approved by Rahul, Arjun. Merged Aug 18.

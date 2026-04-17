@@ -1,0 +1,45 @@
+PR #12: Introduce Kafka for async communication between services
+Author: Rahul Sharma
+Date: 2025-08-20
+Status: Merged
+Branch: feature/kafka-events
+
+Description:
+Replace synchronous REST calls between order-service and payment-service 
+with Kafka event-driven communication. This decouples the services and 
+adds retry capability.
+
+Review Comments:
+
+Priya Nair (Aug 21):
+"Why Kafka and not RabbitMQ? RabbitMQ is simpler to set up and we 
+don't really need Kafka's replay capability right now."
+
+Rahul Sharma (Aug 21):
+"Good question. Three reasons: 
+1. We plan to add notification-service and analytics later — Kafka's 
+   pub-sub model handles multiple consumers better than RabbitMQ's queue model
+2. Event replay is valuable for debugging production issues
+3. Kafka's throughput is much better for our flash sale scenarios
+The operational overhead is manageable with Docker Compose locally 
+and MSK on AWS."
+
+Arjun Patel (Aug 22):
+"The Kafka consumer config looks good but you're not setting a 
+consumer group ID explicitly. Spring will auto-generate one, which 
+means restarting the service creates a new consumer group and you 
+lose your offset tracking. Please set it explicitly."
+
+Rahul Sharma (Aug 22):
+"Good catch. Fixed. Set consumer group to 'payment-service-group'."
+
+Meera Iyer (Aug 22):
+"What happens if the Kafka consumer throws an exception? Will the 
+message be retried or lost?"
+
+Rahul Sharma (Aug 22):
+"Right now it retries 3 times with 1 second delay. After that, 
+the message is logged and skipped. I'll add a dead letter topic 
+in a follow-up PR to capture failed messages."
+
+Final status: Approved by Priya, Arjun, Meera. Merged Aug 23.

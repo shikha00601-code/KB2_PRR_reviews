@@ -1,0 +1,33 @@
+PR #45: Add Elasticsearch for order search
+Author: Priya Nair  
+Date: 2025-10-12
+Status: Merged
+Branch: feature/elasticsearch-search
+
+Description:
+Move order and product search from PostgreSQL LIKE queries to 
+Elasticsearch with Debezium CDC for data sync.
+
+Review Comments:
+
+Rahul Sharma (Oct 13):
+"Love the Debezium approach. Much cleaner than dual writes. One concern 
+— what's the sync lag? If a customer places an order and immediately 
+searches for it, will it show up?"
+
+Priya Nair (Oct 13):
+"Typical lag is under 2 seconds. For the 'my recent orders' page, 
+I'm still querying PostgreSQL directly to guarantee consistency. 
+Elasticsearch is only used for the general search/filter functionality 
+where a few seconds of delay is acceptable."
+
+Meera Iyer (Oct 14):
+"How do we handle Elasticsearch being down? The search feature should 
+degrade, not take down the whole order service."
+
+Priya Nair (Oct 14):
+"Added circuit breaker around ES calls. If ES is down, search returns 
+an error message but all other order operations continue normally. 
+ES is not in the critical path for order creation or payment."
+
+Final status: Approved by Rahul, Meera. Merged Oct 15.

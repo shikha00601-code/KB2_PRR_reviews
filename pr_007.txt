@@ -1,0 +1,28 @@
+PR #52: Implement multi-currency support
+Author: Priya Nair
+Date: 2025-10-30
+Status: Merged
+Branch: feature/multi-currency
+
+Review Comments:
+
+Rahul Sharma (Oct 31):
+"Where are we getting exchange rates from? If it's a free API, 
+the rate limits might be tight."
+
+Priya Nair (Oct 31):
+"Using exchangerate-api.com free tier for now. 1500 requests per month. 
+Since we cache rates in Redis for 1 hour, we only make about 24 API calls 
+per day (4 currencies x hourly). Well within limits. Can upgrade to paid 
+tier or switch to Open Exchange Rates if we need more currencies."
+
+Karan Joshi (Nov 1):
+"Should we store the exchange rate used at order time? If rates change 
+after the order is placed, we need to know what rate was applied."
+
+Priya Nair (Nov 1):
+"Great point. Added exchange_rate_applied column to the orders table. 
+Now we store: original_amount, original_currency, exchange_rate_applied, 
+and usd_equivalent. Full audit trail."
+
+Final status: Approved by Rahul, Karan. Merged Nov 2.
